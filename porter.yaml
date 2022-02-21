@@ -3,11 +3,11 @@
 # See https://porter.sh/author-bundles for documentation on how to configure your bundle
 # Uncomment out the sections below to take full advantage of what Porter can do!
 
-name: porter-hello
-version: 0.1.0
-description: "An example Porter configuration"
+name: hello-powerbi
+version: 0.1.1
+description: "An a Porter bundle that connects to and configures Power BI resources."
 # TODO: update the registry to your own, e.g. myregistry
-registry: getporter
+registry: ghcr.io/squillace
 
 # If you want to customize the Dockerfile in use, uncomment the line below and update the referenced file. 
 # See https://porter.sh/custom-dockerfile/
@@ -15,13 +15,18 @@ registry: getporter
 
 mixins:
   - exec
+  - pbicli
 
 install:
-  - exec:
-      description: "Install Hello World"
-      command: ./helpers.sh
-      arguments:
-        - install
+  - pbicli:
+      description: "Logging into PowerBI...."
+      arguments: 
+        - login
+      flags:
+        service-principal: ""
+        principal: "{{bundle.credentials.AZURE_CLIENT_ID}}"
+        secret: "{{bundle.credentials.AZURE_SP_PASSWORD}}"
+        tenant: "{{bundle.credentials.AZURE_TENANT_ID_OR_DNS}}"
 
 upgrade:
   - exec:
@@ -39,11 +44,19 @@ uninstall:
 
 # Below is an example of how to define credentials
 # See https://porter.sh/author-bundles/#credentials
-#credentials:
-#  - name: kubeconfig
-#    path: /root/.kube/config
-#  - name: username
-#    env: USERNAME
+credentials:
+  - name: AZURE_CLIENT_ID
+    description: "The client id for the service principal used to automate the bundle's actions."
+    env: AZURE_CLIENT_ID
+  - name: AZURE_TENANT_ID_OR_DNS
+    description: "The tenant identity in which the service principal resides."
+    env: AZURE_TENANT_ID_OR_DNS
+  - name: AZURE_SP_PASSWORD
+    description: "The service principal password that is used to log into Azure inside the bundle."
+    env: AZURE_SP_PASSWORD
+  - name: AZURE_SUBSCRIPTION_ID
+    description: "The Azure subscription into which to deploy."
+    env: AZURE_SUB_ID
 
 # Below is an example of how to define parameters
 # See https://porter.sh/author-bundles/#parameters
